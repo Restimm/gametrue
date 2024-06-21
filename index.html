@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Jawaban Benar atau Salah</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #282c34;
+            color: #ffffff;
+        }
+
+        .container {
+            text-align: center;
+            background: #3b3e47;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .buttons {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #ffffff;
+        }
+
+        #start-btn {
+            background-color: #61dafb;
+            color: #282c34;
+        }
+
+        .correct {
+            background-color: green;
+        }
+
+        .wrong {
+            background-color: red;
+        }
+
+        #yes {
+            background-color: #007bff;
+        }
+
+        #no {
+            background-color: #dc3545;
+        }
+
+        #play-again,
+        #back {
+            display: none;
+            background-color: #61dafb;
+            color: #282c34;
+        }
+
+        #play-again:hover,
+        #back:hover,
+        #start-btn:hover {
+            opacity: 0.8;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        h1 {
+            margin-bottom: 0;
+            font-family: 'Arial', sans-serif;
+            font-size: 36px;
+            letter-spacing: 5px;
+            color: #61dafb;
+        }
+
+        p {
+            margin-top: 0;
+            font-family: 'Arial', sans-serif;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        #development-message {
+            display: none;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #ffcc00;
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 14px;
+            color: #aaa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .footer span {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Game Jawaban Benar atau Salah</h1>
+        <p id="intro">Selamat datang di game jawaban benar atau salah. Tekan tombol di bawah untuk mulai bermain!</p>
+        <button id="start-btn" onclick="startGame()">Mulai Bermain</button>
+        <div id="game" style="display: none;">
+            <div id="question"></div>
+            <div class="buttons">
+                <button id="yes" onclick="checkAnswer(true)">Iya</button>
+                <button id="no" onclick="checkAnswer(false)">Tidak</button>
+            </div>
+            <div id="result"></div>
+        </div>
+        <div id="summary" style="display: none;">
+            <p id="correct-count"></p>
+            <p id="wrong-count"></p>
+        </div>
+        <button id="play-again" onclick="playAgain()">Main Lagi</button>
+        <button id="back" onclick="goBack()">Kembali</button>
+        <div id="development-message">Maaf, game nya masih sampai sini saja 😊. Soalnya masih dalam pengembangan.</div>
+        <div class="footer">
+            <span>Game by Restim 2024</span>
+            <span id="datetime"></span>
+        </div>
+    </div>
+    <script>
+        const questionSets = [
+            [
+                { question: "Albert Einstein lahir di abad ke-19", answer: true },
+                { question: "Sungai Amazon adalah sungai terpanjang di dunia", answer: false },
+                { question: "Penulis novel '1984' adalah George Orwell", answer: true },
+                { question: "Mount Everest adalah gunung tertinggi di dunia", answer: true },
+                { question: "Australia adalah negara terbesar di dunia", answer: false }
+            ],
+            [
+                { question: "Benua Afrika memiliki negara terbanyak", answer: false },
+                { question: "Anakonda adalah ular terpanjang di dunia", answer: false },
+                { question: "Nitrogen adalah gas terbanyak di atmosfer bumi", answer: true },
+                { question: "Roma adalah ibu kota Italia", answer: true },
+                { question: "Penemu telepon adalah Alexander Graham Bell", answer: true }
+            ],
+            [
+                { question: "Oksigen adalah gas yang paling melimpah di atmosfer bumi", answer: false },
+                { question: "Tsunami adalah gelombang laut besar yang disebabkan oleh perubahan tekanan atmosfer.", answer: false },
+                { question: "Cahaya bergerak lebih cepat di kaca daripada di udara.", answer: false },
+                { question: "Tulang terkuat dalam tubuh manusia adalah tulang paha.", answer: true },
+                { question: "Bintang terdekat dengan bumi adalah Proxima Centauri.", answer: false }
+            ]
+        ];
+
+        let currentQuestionIndex = 0;
+        let questionCount = 0;
+        const maxQuestions = 5;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let playCount = 0;
+
+        function startGame() {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('development-message').style.display = 'none';
+            currentQuestionIndex = 0;
+            questionCount = 0;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (questionCount < maxQuestions) {
+                const questionElement = document.getElementById('question');
+                const currentSet = questionSets[playCount % questionSets.length];
+                questionElement.textContent = currentSet[currentQuestionIndex].question;
+                document.getElementById('result').textContent = '';
+                document.getElementById('yes').className = '';
+                document.getElementById('no').className = '';
+            } else {
+                endGame();
+            }
+        }
+
+        function checkAnswer(isYes) {
+            const currentSet = questionSets[playCount % questionSets.length];
+            const correctAnswer = currentSet[currentQuestionIndex].answer;
+            const yesButton = document.getElementById('yes');
+            const noButton = document.getElementById('no');
+            const result = document.getElementById('result');
+
+            if (isYes === correctAnswer) {
+                result.textContent = 'Jawaban Anda Benar!';
+                result.className = 'correct';
+                yesButton.className = isYes ? 'correct' : '';
+                noButton.className = isYes ? '' : 'correct';
+                correctAnswers++;
+            } else {
+                result.textContent = 'Jawaban Anda Salah!';
+                result.className = 'wrong';
+                yesButton.className = isYes ? 'wrong' : '';
+                noButton.className = isYes ? '' : 'wrong';
+                wrongAnswers++;
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex = (currentQuestionIndex + 1) % currentSet.length;
+                questionCount++;
+                showQuestion();
+            }, 1000);
+        }
+
+        function endGame() {
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('play-again').style.display = 'inline-block';
+            document.getElementById('back').style.display = 'inline-block';
+            document.getElementById('result').textContent = 'Permainan Selesai!';
+            document.getElementById('summary').style.display = 'block';
+            document.getElementById('correct-count').textContent = `Jawaban Benar: ${correctAnswers}`;
+            document.getElementById('wrong-count').textContent = `Jawaban Salah: ${wrongAnswers}`;
+        }
+
+        function playAgain() {
+            playCount++;
+            if (playCount >= 3) {
+                document.getElementById('development-message').style.display = 'block';
+                document.getElementById('play-again').style.display = 'none';
+            } else {
+                currentQuestionIndex = 0;
+                questionCount = 0;
+                correctAnswers = 0;
+                wrongAnswers = 0;
+                document.getElementById('game').style.display = 'block';
+                document.getElementById('play-again').style.display = 'none';
+                document.getElementById('back').style.display = 'none';
+                document.getElementById('summary').style.display = 'none';
+                showQuestion();
+            }
+        }
+
+        function goBack() {
+            document.getElementById('intro').style.display = 'block';
+            document.getElementById('start-btn').style.display = 'inline-block';
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('play-again').style.display = 'none';
+            document.getElementById('back').style.display = 'none';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('development-message').style.display = 'none';
+        }
+
+        // Update date and time in the footer
+        function updateDateTime() {
+            const now = new Date();
+            const datetimeElement = document.getElementById('datetime');
+            datetimeElement.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + now.toLocaleTimeString('id-ID');
+        }
+
+        // Call updateDateTime every second
+        setInterval(updateDateTime, 1000);
+    </script>
+</body>
+
+</html>
